@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.backend.name }}
+    env: {{ .Values.appEnv }}
+    tier: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.backend.name }}
+        env: {{ .Values.appEnv }}
+        tier: backend
+    spec:
+      containers:
+      - name: backend
+        image: {{ .Values.backend.image }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_NAME
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_ENV
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_PORT
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.backend.name }}
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
