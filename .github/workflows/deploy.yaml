@@ -93,12 +93,19 @@ jobs:
       run: terraform init
       working-directory: ./terraform
 
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: v3.12.0
+
     - name: Uninstall Helm Release
       run: |
         aws eks update-kubeconfig \
           --region us-east-1 \
           --name my-eks-cluster
         helm uninstall myapp-release -n myapp || true
+        echo "Waiting 60 seconds for Load Balancer deletion..."
+        sleep 60
 
     - name: Terraform Destroy
       run: terraform destroy -auto-approve
