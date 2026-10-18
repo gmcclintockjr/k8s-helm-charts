@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.database.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.database.name }}
+    env: {{ .Values.appEnv }}
+    tier: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.database.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.database.name }}
+        env: {{ .Values.appEnv }}
+        tier: database
+    spec:
+      containers:
+      - name: database
+        image: {{ .Values.database.image }}
+        ports:
+        - containerPort: {{ .Values.database.port }}
+        volumeMounts:
+        - mountPath: {{ .Values.database.mountPath }}
+          name: db-storage
+          subPath: db-data
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: POSTGRES_PASSWORD
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: API_KEY
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: JWT_SECRET
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: {{ .Values.pvc.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.database.name }}
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: {{ .Values.database.port }}
+    targetPort: {{ .Values.database.port }}

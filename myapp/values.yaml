@@ -1,0 +1,50 @@
+# ================================================
+# inv Helm Chart Values
+# Like your banking.conf but in Helm format!!
+# ================================================
+
+# General
+namespace: myapp
+appEnv: production
+
+# Frontend
+frontend:
+  name: myapp-frontend
+  image: nginx
+  replicas: 2
+  port: 31000
+  serviceType: LoadBalancer
+
+# Backend
+backend:
+  name: myapp-backend
+  image: httpd
+  replicas: 2
+
+# Database
+database:
+  name: myapp-database
+  image: postgres:15
+  port: 5432
+  mountPath: /var/lib/postgresql/data
+
+# PVC
+pvc:
+  name: myapp-db-pvc
+  size: 2Gi
+  storageClass: gp2-csi
+
+# ConfigMap
+config:
+  APP_NAME: myappManager
+  MAX_CASES: 100000
+  MAX_LAYWERS: 5000
+  SUPPORT_EMAIL: support@myappmanager.com
+
+# Secrets
+secret:
+  POSTGRES_PASSWORD: myappPass123
+  API_KEY: myappApiKey456
+  JWT_SECRET: myappJwt789
+  ENCRYPTION_KEY: myappEncrypt999
+
