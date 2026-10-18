@@ -104,8 +104,20 @@ jobs:
           --region us-east-1 \
           --name my-eks-cluster
         helm uninstall myapp-release -n myapp || true
-        echo "Waiting 60 seconds for Load Balancer deletion..."
-        sleep 60
+        echo "Waiting 120 seconds for Load Balancer deletion..."
+        sleep 120
+        echo "Checking for remaining Load Balancers..."
+        LBS=$(aws elb describe-load-balancers \
+          --region us-east-1 \
+          --query 'LoadBalancerDescriptions[*].LoadBalancerName' \
+          --output text)
+        for lb in $LBS; do
+          echo "Deleting Load Balancer: $lb"
+          aws elb delete-load-balancer \
+            --load-balancer-name $lb \
+            --region us-east-1
+        done
+        sleep 30
 
     - name: Terraform Destroy
       run: terraform destroy -auto-approve
