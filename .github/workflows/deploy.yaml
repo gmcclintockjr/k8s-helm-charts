@@ -103,16 +103,18 @@ jobs:
         aws eks update-kubeconfig \
           --region us-east-1 \
           --name my-eks-cluster
+        kubectl delete service frontend-service -n myapp || true
+        echo "Waiting 90 seconds for Load Balancer deletion..."
+        sleep 90
         helm uninstall myapp-release -n myapp || true
-        echo "Waiting 120 seconds for Load Balancer deletion..."
-        sleep 120
-        echo "Checking for remaining Load Balancers..."
+        echo "Waiting 30 more seconds..."
+        sleep 30
         LBS=$(aws elb describe-load-balancers \
           --region us-east-1 \
           --query 'LoadBalancerDescriptions[*].LoadBalancerName' \
           --output text)
         for lb in $LBS; do
-          echo "Deleting Load Balancer: $lb"
+          echo "Force deleting Load Balancer: $lb"
           aws elb delete-load-balancer \
             --load-balancer-name $lb \
             --region us-east-1
